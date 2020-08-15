@@ -58,7 +58,7 @@ public class EmailTask { //implements RequestHandler<SNSEvent,Object>
         try{
             System.out.println("Entered EmailTask handleRequest function");
 
-//            AWSCredentials awsCreds = new BasicAWSCredentials("AKIAIR33AVDXDQS5OGTA","SKyAmaDysGx4oto0Wrq89nhJmnVnERaU2j/OQBGt");
+//            AWSCredentials awsCreds = new BasicAWSCredentials(" "," ");
 //            AmazonDynamoDB c = new AmazonDynamoDBClient(awsCreds);
 //            this.dynamoDB = new DynamoDB(c);
             context.getLogger().log("Entered Lambda Function Code");
@@ -124,7 +124,7 @@ public class EmailTask { //implements RequestHandler<SNSEvent,Object>
     public void sendEMAIL(Context context, String toEMAIL, String emailVal){
         try {
             context.getLogger().log("Sending Email");
-            AWSCredentials awsCreds = new BasicAWSCredentials("AKIAIR33AVDXDQS5OGTA","SKyAmaDysGx4oto0Wrq89nhJmnVnERaU2j/OQBGt");
+            AWSCredentials awsCreds = new BasicAWSCredentials(" "," ");
             AmazonSimpleEmailService client = new AmazonSimpleEmailServiceClient(awsCreds);
             client.setRegion(Region.getRegion(Regions.US_EAST_1));
 
