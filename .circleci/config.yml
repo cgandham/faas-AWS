@@ -1,0 +1,72 @@
+jobs:
+  build:
+    docker:
+      - image: circleci/openjdk:11
+    steps:
+      - checkout
+      - run:
+          name: Install Packages
+          command: |
+            sudo apt-get update && sudo apt-get -y install wget zip unzip python3
+            python3 --version
+      - run:
+          name: Install pip
+          command: sudo apt install python3-pip
+      - run:
+          name: Install curl
+          command: |
+            echo "Installing curl"
+            sudo apt-get install curl
+            sudo curl --version
+
+      - run:
+          name: Install awscli
+          command: |
+            echo "Installing AWS CLI"
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+            sudo apt-get update
+            sudo apt-get install less -y
+            echo "AWS CLI installed successfully!"
+            aws --version
+      - run:
+          name: Maven build
+          command: mvn clean install      
+      - run:
+          name: Maven test
+          command: mvn test
+      - run:
+          name: Create Artifact directory
+          command: |
+            echo "Hello the current build number is ${CIRCLE_BUILD_NUM}"
+            pwd
+            echo "Listing current directory content"
+            ls -al
+            echo "Making the lambda_artifact directory"
+            mkdir -p lambda_artifact
+            cd lambda_artifact
+            pwd
+            ls -al
+            touch 777 lambdaop.txt
+      - run:
+          name: Upload Artifacts to S3
+          command: |
+            echo "Uploading artifacts to s3 bucket ${BUCKET_NAME}"
+            pwd
+            ls -al
+            aws s3 cp /home/circleci/project/target/myLambdaJar.jar s3://${BUCKET_NAME} --region us-east-1
+            echo "Artifact uploaded to S3 successfully"
+      - run:
+          name: Update JAR in lambda function
+          command: |
+            allfunctions=$(aws lambda list-functions --query 'Functions[?Version == `$LATEST`].{FunctionName:FunctionName}')
+            if [  `echo $allfunctions | grep -w -c "$FUNCTION_NAME" ` -gt 0 ]
+            then
+              echo "Function $FUNCTION_NAME already exists. Updating it."
+              aws lambda update-function-code --region ${AWS_REGION} \
+                                              --function-name ${FUNCTION_NAME} \
+                                              --s3-bucket ${BUCKET_NAME} \
+                                              --s3-key myLambdaJar.jar > lambdaop.txt
+              echo "Function updated successfully."
+              fi       
